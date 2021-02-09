@@ -1,10 +1,21 @@
-FROM ubuntu:20.04
+FROM alpine:3.13
 
-RUN apt-get update && \
-    apt-get install -y iproute2 iptables tcpdump wireguard-tools qrencode
-
-ADD https://snapshots.mitmproxy.org/6.0.2/mitmproxy-6.0.2-linux.tar.gz /mitmproxy.tar.gz
-RUN tar -xzvf /mitmproxy.tar.gz -C /usr/local/bin
+RUN apk add --update --no-cache \
+    iproute2 \
+    iptables \
+    wireguard-tools \
+    libqrencode \
+    python3 \
+    gcc \
+    g++ \
+    libffi-dev \
+    python3-dev \
+    musl-dev \
+    openssl-dev \
+    tcpdump
+RUN python3 -m ensurepip && \
+    pip3 install --upgrade pip setuptools wheel
+RUN pip3 install mitmproxy
 
 COPY init.sh /
 COPY run.sh /

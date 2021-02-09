@@ -10,4 +10,5 @@ services:
       - ".env"
     volumes:
       - "./share:/share"
-    command: ["/bin/sh", "-c", "while true; do sleep 1; done"]
+    init: true
+    command: ["sleep", "infinity"]
