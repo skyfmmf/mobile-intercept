@@ -1,0 +1,13 @@
+version: "2.4"
+services:
+  mitmproxy:
+    image: "skyfmmf/mobile-intercept:latest"
+    build: .
+    privileged: true
+    ports:
+      - "${EXT_IP}:${EXT_PORT}:${EXT_PORT}/udp"
+    env_file:
+      - ".env"
+    volumes:
+      - "./share:/share"
+    command: ["/bin/sh", "-c", "while true; do sleep 1; done"]
