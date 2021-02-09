@@ -17,6 +17,6 @@ RUN python3 -m ensurepip && \
     pip3 install --upgrade pip setuptools wheel
 RUN pip3 install mitmproxy
 
-COPY init.sh /
-COPY run.sh /
-COPY view.sh /
+COPY setup.sh /usr/local/bin/mi-setup
+COPY intercept.sh /usr/local/bin/mi-intercept
+COPY view.sh /usr/local/bin/mi-view
