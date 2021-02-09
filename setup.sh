@@ -1,7 +1,11 @@
 #!/bin/sh
 
 IFNAME="${IFNAME:-wgspy0}"
-SHARE="${SHARE:-/share}"
+SHARE="/share"
+
+PEER_NUM="${PEER_NUM:-1}"
+WG_SUBNET="${WG_SUBNET:-10.255.255}"
+WG_SRV_IP="${WG_SUBNET}.254"
 
 umask 077
 if [ ! -e "${SHARE}/server.key" ]; then
@@ -10,31 +14,28 @@ fi
 if [ ! -e "${SHARE}/server.pub" ]; then
     wg pubkey < "${SHARE}/server.key" > "${SHARE}/server.pub"
 fi
-
-if [ ! -e "${SHARE}/peer.key" ]; then
-    wg genkey > "${SHARE}/peer.key"
-fi
-if [ ! -e "${SHARE}/peer.pub" ]; then
-    wg pubkey < "${SHARE}/peer.key" > "${SHARE}/peer.pub"
-fi
-
 if [  ! -e "${SHARE}/server.conf" ]; then
     cat << EOF > "${SHARE}/server.conf"
 [Interface]
 PrivateKey = $(cat "${SHARE}/server.key")
 ListenPort = ${EXT_PORT}
-
-[Peer]
-PublicKey = $(cat "${SHARE}/peer.pub")
-AllowedIPs = 10.255.255.2/32
 EOF
 fi
 
-if [  ! -e "${SHARE}/peer.conf" ]; then
-    cat << EOF > "${SHARE}/peer.conf"
+for pid in $(seq $PEER_NUM); do
+    peer_ip="${WG_SUBNET}.${pid}"
+    if [ ! -e "${SHARE}/peer${pid}.key" ]; then
+        wg genkey > "${SHARE}/peer${pid}.key"
+    fi
+    if [ ! -e "${SHARE}/peer${pid}.pub" ]; then
+        wg pubkey < "${SHARE}/peer${pid}.key" > "${SHARE}/peer${pid}.pub"
+    fi
+
+    if [  ! -e "${SHARE}/peer${pid}.conf" ]; then
+        cat << EOF > "${SHARE}/peer${pid}.conf"
 [Interface]
-Address = 10.255.255.2/24
-PrivateKey = $(cat "${SHARE}/peer.key")
+Address = ${peer_ip}/24
+PrivateKey = $(cat "${SHARE}/peer${pid}.key")
 DNS = 1.1.1.1, 1.0.0.1
 
 [Peer]
@@ -42,16 +43,25 @@ PublicKey = $(cat "${SHARE}/server.pub")
 Endpoint = ${EXT_IP}:${EXT_PORT}
 AllowedIPs = 0.0.0.0/0
 EOF
-fi
+        cat << EOF >> "${SHARE}/server.conf"
+[Peer]
+PublicKey = $(cat "${SHARE}/peer${pid}.pub")
+AllowedIPs = ${peer_ip}/32
+EOF
+    fi
+done
 
-ip link add dev $IFNAME type wireguard
-ip address add dev $IFNAME 10.255.255.1/24
-wg setconf $IFNAME "${SHARE}/server.conf"
-ip link set up dev $IFNAME
+ip link add dev "${IFNAME}" type wireguard
+ip address add dev "${IFNAME}" "${WG_SRV_IP}/24"
+wg setconf "${IFNAME}" "${SHARE}/server.conf"
+ip link set up dev "${IFNAME}"
 
-iptables -t nat -A PREROUTING -i ${IFNAME} -p tcp --dport 80 -j REDIRECT --to-port 8080
-iptables -t nat -A PREROUTING -i ${IFNAME} -p tcp --dport 443 -j REDIRECT --to-port 8080
-iptables -t nat -A POSTROUTING -s 10.255.255.0/24 -o eth0 -j MASQUERADE
+iptables -t nat -A PREROUTING -i "${IFNAME}" -p tcp --dport 80 -j REDIRECT --to-port 8080
+iptables -t nat -A PREROUTING -i "${IFNAME}" -p tcp --dport 443 -j REDIRECT --to-port 8080
+iptables -t nat -A POSTROUTING -s "${WG_SUBNET}.0/24" -o eth0 -j MASQUERADE
 
-echo "WireGuard configured. Scan the QR code to configure the client."
-qrencode -t ansiutf8 < "${SHARE}/peer.conf"
+echo "WireGuard configured."
+for pid in $(seq $PEER_NUM); do
+    echo "Scan the QR code to configure peer ${pid}."
+    qrencode -t ansiutf8 < "${SHARE}/peer${pid}.conf"
+done
