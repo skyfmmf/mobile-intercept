@@ -22,7 +22,7 @@ ListenPort = ${EXT_PORT}
 EOF
 fi
 
-for pid in $(seq $PEER_NUM); do
+for pid in $(seq "${PEER_NUM}"); do
     peer_ip="${WG_SUBNET}.${pid}"
     if [ ! -e "${SHARE}/peer${pid}.key" ]; then
         wg genkey > "${SHARE}/peer${pid}.key"
@@ -61,7 +61,7 @@ iptables -t nat -A PREROUTING -i "${IFNAME}" -p tcp --dport 443 -j REDIRECT --to
 iptables -t nat -A POSTROUTING -s "${WG_SUBNET}.0/24" -o eth0 -j MASQUERADE
 
 echo "WireGuard configured."
-for pid in $(seq $PEER_NUM); do
+for pid in $(seq "${PEER_NUM}"); do
     echo "Scan the QR code to configure peer ${pid}."
     qrencode -t ansiutf8 < "${SHARE}/peer${pid}.conf"
 done
