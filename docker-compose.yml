@@ -1,8 +1,8 @@
 version: "2.4"
 services:
   mitmproxy:
-    image: "skyfmmf/mobile-intercept:latest"
-    build: .
+    image: "docker.pkg.github.com/skyfmmf/mobile-intercept/mitmproxy:0.1.0"
+    #build: .
     privileged: true
     ports:
       - "${EXT_IP}:${EXT_PORT}:${EXT_PORT}/udp"

@@ -36,7 +36,7 @@ consult this file if you need to make modifications to the setup.
       preferably using the WireGuard mobile app
 2. Configure the IP address for start the VPN server in the `.env` file. This
    address needs to be reachable from the mobile device.
-3. Build and start the container by running `docker-compose up -d --build`
+3. Start the container by running `docker-compose up -d`
 4. Start a shell inside the container using `docker-compose exec mitmproxy
    bash`
 5. Now run `mi-setup` inside the container. This will setup the VPN and print a
