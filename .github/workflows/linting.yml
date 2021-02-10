@@ -1,0 +1,16 @@
+name: "Linting"
+on: ["push", "pull_request"]
+jobs:
+  lint:
+    name: "Linting"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Lint Code
+        uses: github/super-linter@v3
+        env:
+          DEFAULT_BRANCH: main
+
