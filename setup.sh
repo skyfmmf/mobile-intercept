@@ -51,7 +51,7 @@ EOF
     fi
 done
 
-ip link add dev "${IFNAME}" type wireguard
+wireguard-go "${IFNAME}"
 ip address add dev "${IFNAME}" "${WG_SRV_IP}/24"
 wg setconf "${IFNAME}" "${SHARE}/server.conf"
 ip link set up dev "${IFNAME}"
