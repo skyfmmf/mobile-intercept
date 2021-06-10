@@ -1,7 +1,7 @@
 version: "2.4"
 services:
   mitmproxy:
-    image: "ghcr.io/skyfmmf/mobile-intercept:0.2.0"
+    image: "ghcr.io/skyfmmf/mobile-intercept:0.2.1"
     #build: .
     privileged: true
     ports:
